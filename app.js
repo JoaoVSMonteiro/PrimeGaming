@@ -1,217 +1,102 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config(); // importando dotenv
+const loginController = require('./public/src/controllers/loginController');
+const photoProfileController = require('./public/src/controllers/photoProfileController');
+const redis = require('redis');
+
+
+const client = redis.createClient({
+  url: 'redis://localhost:6379', // Porta de conexão com Redis
+  socket: {
+    reconnectStrategy: false // Impede o loop de reconexão em caso de falha na primeira tentativa
+  }
+});
+
+
+// Inicializa o aplicativo Express
 const app = express();
 
+app.use(express.json({ limit: '10mb' })); // Ajuste o limite de tamanho da imagem
+
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Caminhos para os arquivos JSON
-const clientsFilePath = path.join(__dirname, 'clientes.json'); // Caminho para clientes
-const productsFilePath = path.join(__dirname, 'produtos.json'); // Caminho para produtos
-const usersFilePath = path.join(__dirname, 'usuarios.json'); // Caminho para usuários
+// Conectar ao MongoDB (login e produtos)
+mongoose.connect('mongodb://localhost:27017/primegaming', {});
 
-// Função para ler os clientes do arquivo JSON
-function readClients() {
-    if (!fs.existsSync(clientsFilePath)) {
-        return [];
-    }
-    const clientsData = fs.readFileSync(clientsFilePath);
-    return JSON.parse(clientsData);
-}
-
-// Função para escrever os clientes no arquivo JSON
-function writeClients(clients) {
-    fs.writeFileSync(clientsFilePath, JSON.stringify(clients, null, 2));
-}
-
-// Função para ler os produtos do arquivo JSON
-function readProducts() {
-    if (!fs.existsSync(productsFilePath)) {
-        return [];
-    }
-    const productsData = fs.readFileSync(productsFilePath);
-    return JSON.parse(productsData);
-}
-
-// Função para escrever os produtos no arquivo JSON
-function writeProducts(products) {
-    fs.writeFileSync(productsFilePath, JSON.stringify(products, null, 2));
-}
-
-// Função para ler os usuários do arquivo JSON
-function readUsers() {
-    if (!fs.existsSync(usersFilePath)) {
-        return [];
-    }
-    const usersData = fs.readFileSync(usersFilePath);
-    return JSON.parse(usersData);
-}
-
-// Função para escrever os usuários no arquivo JSON
-function writeUsers(users) {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-}
-
-// Endpoints para clientes
-app.get('/api/clients', (req, res) => {
-    const clients = readClients();
-    res.json(clients);
+// Console conexão com MongoDB
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'Erro na conexão com o MongoDB:'));
+db.once('open', () => {
+    console.log('Conectado ao MongoDB');
 });
 
-app.post('/api/clients', (req, res) => {
-    const clients = readClients();
-    const newClient = req.body;
+// rotas login signup
+app.post('/signup', loginController.signup);
+app.post('/login', loginController.login);
 
-    const existingClient = clients.find(client => client.id === newClient.id);
-    if (existingClient) {
-        return res.json({ message: 'ID já está cadastrado com outro cliente.' });
+// Rota para atualizar a imagem de perfil
+app.post('/api/users/updateProfileImage', photoProfileController.updateProfileImage);
+
+
+// Importando as rotas
+const clientsRoutes = require('./public/src/routes/clientsRoutes');
+const productsRoutes = require('./public/src/routes/productsRoutes');
+const usersRoutes = require('./public/src/routes/usersRoutes');
+
+
+// Endpoints
+app.use('/api/clients', clientsRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/users', usersRoutes);
+
+
+// REDIS DB
+// Endpoint para adicionar atividades recentes no Redis
+app.post('/api/atividades', async (req, res) => {
+    const { msgAtividadesRecentes } = req.body;
+  
+    try {
+      const reply = await client.lPush('atividades', msgAtividadesRecentes);
+      res.send({ message: 'Atividade salva com sucesso no Redis', reply });
+    } catch (err) {
+      console.error('Erro ao salvar atividade no Redis:', err);
+      res.status(500).send('Erro ao salvar atividade no Redis');
     }
-
-    clients.push(newClient);
-    writeClients(clients);
-
-    res.json({ message: 'Cliente cadastrado com sucesso!' });
-});
-
-app.put('/api/clients/:id', (req, res) => {
-    const clients = readClients();
-    const clientId = req.params.id;
-    const updatedClient = req.body;
-
-    const clientIndex = clients.findIndex(client => client.id === clientId);
-
-    if (clientIndex === -1) {
-        return res.status(404).json({ message: 'Cliente não encontrado.' });
+  });
+  
+  // Endpoint para buscar atividades recentes
+  app.get('/api/atividades', async (req, res) => {
+    try {
+      const atividades = await client.lRange('atividades', 0, -1);
+      res.send(atividades);
+    } catch (err) {
+      console.error('Erro ao buscar atividades no Redis:', err);
+      res.status(500).send('Erro ao buscar atividades no Redis');
     }
+  });
 
-    clients[clientIndex] = { ...clients[clientIndex], ...updatedClient };
-    writeClients(clients);
 
-    res.json({ message: 'Cliente atualizado com sucesso!' });
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Aplicação está sendo executada na porta ${PORT}`);
 });
 
-app.delete('/api/clients/:id', (req, res) => {
-    const clients = readClients();
-    const clientId = req.params.id;
+// Conectar ao Redis
+client.connect()
+  .then(() => {
+    console.log('Conectado ao Redis');
+  })
+  .catch(err => {
+    console.error('Redis não conectado', err.message);
+  });
 
-    const updatedClients = clients.filter(client => client.id !== clientId);
-
-    if (clients.length === updatedClients.length) {
-        return res.status(404).json({ message: 'Cliente não encontrado.' });
-    }
-
-    writeClients(updatedClients);
-
-    res.json({ message: 'Cliente removido com sucesso!' });
-});
-
-// Endpoints para produtos
-app.get('/api/products', (req, res) => {
-    const products = readProducts();
-    res.json(products);
-});
-
-app.post('/api/products', (req, res) => {
-    const products = readProducts();
-    const newProduct = req.body;
-
-    const existingProduct = products.find(product => product.id === newProduct.id);
-    if (existingProduct) {
-        return res.json({ message: 'Produto com esse código já existe!' });
-    }
-
-    products.push(newProduct);
-    writeProducts(products);
-
-    res.json({ message: 'Produto cadastrado com sucesso!' });
-});
-
-app.put('/api/products/:id', (req, res) => {
-    const products = readProducts();
-    const productId = req.params.id;
-    const updatedProduct = req.body;
-
-    const productIndex = products.findIndex(product => product.id === productId);
-
-    if (productIndex === -1) {
-        return res.status(404).json({ message: 'Produto não encontrado.' });
-    }
-
-    products[productIndex] = { ...products[productIndex], ...updatedProduct };
-    writeProducts(products);
-
-    res.json({ message: 'Produto atualizado com sucesso!' });
-});
-
-app.delete('/api/products/:id', (req, res) => {
-    const products = readProducts();
-    const productId = req.params.id;
-
-    const updatedProducts = products.filter(product => product.id !== productId);
-
-    if (products.length === updatedProducts.length) {
-        return res.status(404).json({ message: 'Produto não encontrado.' });
-    }
-
-    writeProducts(updatedProducts);
-
-    res.json({ message: 'Produto removido com sucesso!' });
-});
-
-// Endpoints para usuários
-app.get('/api/users', (req, res) => {
-    const users = readUsers();
-    res.json(users);
-});
-
-app.post('/api/users', (req, res) => {
-    const users = readUsers();
-    const newUser = req.body;
-
-    const existingUser = users.find(user => user.id === newUser.id);
-    if (existingUser) {
-        return res.json({ message: 'ID já está cadastrado com outro usuário.' });
-    }
-
-    users.push(newUser);
-    writeUsers(users);
-
-    res.json({ message: 'Usuário cadastrado com sucesso!' });
-});
-
-app.put('/api/users/:id', (req, res) => {
-    const users = readUsers();
-    const userId = req.params.id;
-    const updatedUser = req.body;
-
-    const userIndex = users.findIndex(user => user.id === userId);
-
-    if (userIndex === -1) {
-        return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    users[userIndex] = { ...users[userIndex], ...updatedUser };
-    writeUsers(users);
-
-    res.json({ message: 'Usuário atualizado com sucesso!' });
-});
-
-app.delete('/api/users/:id', (req, res) => {
-    const users = readUsers();
-    const userId = req.params.id;
-
-    const updatedUsers = users.filter(user => user.id !== userId);
-
-    if (users.length === updatedUsers.length) {
-        return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    writeUsers(updatedUsers);
-
-    res.json({ message: 'Usuário removido com sucesso!' });
-});
-
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
+// Escutar erros no cliente Redis
+client.on('error', (err) => {
+  console.error('Erro no cliente Redis:', err);
 });

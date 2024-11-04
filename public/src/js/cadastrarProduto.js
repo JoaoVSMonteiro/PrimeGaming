@@ -9,7 +9,6 @@ function loadProducts() {
         .then(response => response.json())
         .then(products => {
             const tableBody = document.querySelector('table tbody');
-            // tableBody.innerHTML = ''; // Limpa o corpo da tabela
 
             products.forEach(product => {
                 const row = document.createElement('tr');
@@ -18,7 +17,7 @@ function loadProducts() {
                 const isProductsPage = window.location.pathname.includes('products.html');
                 
                 row.innerHTML = `
-                    <th scope="row"><a><img src="../img/product-1.jpg" alt="Produto Imagem"></a></th>
+                    <th scope="row"><a><img src="${product.image}" alt="Produto Imagem" style="width: 50px; height: 50px;"></a></th>
                     <td><a href="#" class="text-primary fw-bold">${product.name}</a></td>
                     <td>R$${product.price_current}</td>
                     <td class="fw-bold">R$${product.price_promotion}</td>
@@ -35,16 +34,21 @@ function loadProducts() {
 
 // Função para cadastrar um produto
 function cadastrarProduto() {
+    const productImage = document.getElementById('productImage').value.trim();
+
     const product = {
-        id: document.getElementById('productId').value,
+        codProd: document.getElementById('productId').value,
         name: document.getElementById('productName').value,
         price_current: document.getElementById('productPriceCurrent').value,
         price_promotion: document.getElementById('productPricePromotion').value,
         type: document.getElementById('productType').value,
         description: document.getElementById('productDescription').value,
         created_at: document.getElementById('productCreatedAt').value,
-        updated_at: document.getElementById('productUpdatedAt').value
+        updated_at: document.getElementById('productUpdatedAt').value,
+        image: productImage.length > 0 ? productImage : '../img/product-1.jpg' // Define a imagem padrão se o usuário não inserir url da imagem
     };
+
+
 
     fetch('/api/products', {
         method: 'POST',
@@ -61,6 +65,7 @@ function cadastrarProduto() {
     .catch(error => console.error('Erro ao cadastrar produto:', error));
 }
 
+
 // Função para atualizar um produto existente
 function atualizarProduto() {
     const product = {
@@ -69,10 +74,12 @@ function atualizarProduto() {
         price_promotion: document.getElementById('productPricePromotion').value,
         type: document.getElementById('productType').value,
         description: document.getElementById('productDescription').value,
-        updated_at: document.getElementById('productUpdatedAt').value
+        updated_at: new Date() // Atualiza a data automaticamente
     };
 
-    fetch(`/api/products/${document.getElementById('productId').value}`, {
+    const codProd = document.getElementById('productId').value;
+
+    fetch(`/api/products/${codProd}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
@@ -89,7 +96,9 @@ function atualizarProduto() {
 
 // Função para remover um produto
 function removerProduto() {
-    fetch(`/api/products/${document.getElementById('productId').value}`, {
+    const codProd = document.getElementById('removerProductId').value; // Usando o novo ID
+
+    fetch(`/api/products/${codProd}`, {
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -110,7 +119,8 @@ function handleFormAction(action) {
         removerProduto();
     }
 
-    // document.getElementById('productForm').reset(); // Limpa o formulário
+    // Limpa o formulário após a ação
+    document.getElementById('productForm').reset();
 }
 
 // Adiciona os ouvintes de eventos para os botões do formulário
@@ -125,3 +135,59 @@ document.getElementById('atualizarBtn').addEventListener('click', function() {
 document.getElementById('removerBtn').addEventListener('click', function() {
     handleFormAction('remover');
 });
+
+// Função para aplicar desconto produto
+function aplicarDesconto() {
+    const codProd = document.getElementById('descontoProdutoId').value.trim();
+
+    // Verifica se o código do produto foi inserido
+    if (!codProd) {
+        showModal('Insira o código do produto.');
+        return;
+    }
+
+    // Faz uma requisição para buscar o produto pelo código
+    fetch(`/api/products/${codProd}`)
+        .then(response => response.json())
+        .then(product => {
+            if (!product) {
+                showModal('Produto não encontrado.');
+                return;
+            }
+
+            // Calcula o preço com desconto (25%)
+            const precoAtual = parseFloat(product.price_current); // Converte o preço atual para float
+            const precoComDesconto = (precoAtual * 0.75).toFixed(2); // Calcula o desconto de 25%
+
+            
+            if (isNaN(precoAtual)) { // se preço atual is not a number
+                showModal('Preço atual inválido.');
+                return;
+            }
+
+            // Atualiza o campo de preço promocional do produto na tabela na home-page e products.html
+            product.price_promotion = parseFloat(precoComDesconto);
+
+            // Faz uma requisição PUT para atualizar o produto no banco de dados 
+            return fetch(`/api/products/${codProd}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(product)
+            });
+        })
+        .then(response => response.json())
+        .then(data => {
+            showModal('Desconto aplicado com sucesso!');
+            loadProducts(); // Atualiza a tabela de produtos
+        })
+        .catch(error => {
+            console.error('Erro ao aplicar o desconto:', error);
+            showModal('Erro ao aplicar o desconto.');
+        });
+}
+
+
+// Adiciona o ouvinte de eventos ao botão "Aplicar Desconto"
+document.getElementById('aplicarDescontoBtn').addEventListener('click', aplicarDesconto);

@@ -24,93 +24,97 @@
   <!-- CSS -->
   <link href="src/css/bootstrap.min.css" rel="stylesheet">
   <link href="src/css/style.css" rel="stylesheet">
-
+  <link href="src/css/newlogin.css" rel="stylesheet">
 
 </head>
 
 <body>
 
-  <main>
-    <div class="container">
-      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
-              <div class="d-flex justify-content-center py-4">
-                <a href="src/views/home-page.html" class="logo d-flex align-items-center w-auto">
-                  <img src="src/img/logo.png" alt="Ícone Logo">
-                  <span class="d-none d-lg-block">PrimeGaming</span>
-                </a>
-              </div>
-              <div class="card mb-3">
-                <div class="card-body">
-                  <div class="pt-4 pb-2">
-                    <h5 class="card-title text-center pb-0 fs-4">Entre na sua Conta</h5>
-                    <p class="text-center small">Insira seu usuário e senha</p>
-                  </div>
-                  <form class="row g-3 needs-validation" id="loginForm" novalidate>
-                    <div class="col-12">
-                      <label for="loginUsername" class="form-label">Nome de usuário</label>
-                      <div class="input-group has-validation">
-                        <span class="input-group-text" id="inputGroupPrepend">@</span>
-                        <input type="text" name="username" class="form-control" id="loginUsername" required>
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <label for="yourPassword" class="form-label">Senha</label>
-                      <input type="password" name="password" class="form-control" id="yourPassword" required>
-                    </div>
-                    <div class="col-12">
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="userTypeUser" value="User">
-                        <label class="form-check-label" for="userTypeUser">User (Adm)</label>
-                      </div>
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="userTypeClient" value="Client">
-                        <label class="form-check-label" for="userTypeClient">Cliente</label>
-                      </div>
-                    </div>
+  <div class="container" id="container">
 
-                    <!-- Adicionar data de cadastro ao form do login se for cliente -->
-                    <div class="col-12" id="dataCadastro" style="display:none;">
-                      <label for="cadastroDate" class="form-label">Data de Cadastro:</label>
-                      <input type="date" name="cadastroDate" class="form-control" id="cadastroDate">
-                    </div>
+    <!-- Sign Up Form -->
+    <div class="form-container sign-up">
+      <form class="row g-3 needs-validation" id="signupForm" novalidate>
+        <h1>Crie sua Conta</h1>
 
-                    <script>
-                      // Mostrar campo de data de cadastro para clientes apenas quando o checkbox cliente é clicado
-                      document.getElementById('userTypeClient').addEventListener('change', function () {
-                        document.getElementById('dataCadastro').style.display = this.checked ? 'block' : 'none';
-                      });
+        <label for="yourName" class="form-label"></label>
+        <input type="text" name="name" class="form-control" id="yourName" placeholder="Nome" required>
 
-                      // Ocultar o campo de data de cadastro e desmarcar o checkbox cliente se o checkbox usuário for clicado
-                      document.getElementById('userTypeUser').addEventListener('change', function () {
-                        if (this.checked) {
-                          document.getElementById('dataCadastro').style.display = 'none';
-                          document.getElementById('userTypeClient').checked = false;
-                        }
-                      });
-                    </script>
+        <label for="yourEmail" class="form-label"></label>
+        <input type="email" name="email" class="form-control" id="yourEmail" placeholder="Email" required>
 
+        <label for="yourUsername" class="form-label"></label>
+        <input type="text" name="username" class="form-control" id="yourUsername" placeholder="Usuário" required>
 
-                    <div class="col-12">
-                      <button onclick="updateHomePage(user)" class="btn btn-primary w-100" type="submit">Entrar</button>
-                    </div>
-                    <div class="col-12">
-                      <p class="small mb-0">Não tem uma conta? <a href="src/views/signup.html">Cadastre-se</a></p>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
+        <label for="yourPassword" class="form-label"></label>
+        <input type="password" name="password" class="form-control" id="yourPassword" placeholder="Senha" required>
+
+        <button class="btn btn-primary w-100" type="submit">Criar Conta</button>
+      </form>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-container sign-in">
+      <form class="row g-3 needs-validation" id="loginForm" novalidate>
+        <h2 class="card-title text-center pb-0 fs-4">Entre na sua Conta</h2>
+        <span class="text-center small">Insira seu usuário e senha</span>
+
+        <label for="loginUsername" class="form-label"></label>
+        <input type="text" name="username" class="form-control" id="loginUsername" placeholder="Usuário" required>
+
+        <label for="yourPassword" class="form-label"></label>
+        <input type="password" name="password" class="form-control" id="loginPassword" placeholder="Senha" required>
+
+        <!-- Checkboxes e Data de Cadastro -->
+        <div class="checkbox-row">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="userTypeUser" value="User">
+            <label class="form-check-label" for="userTypeUser">User (Adm)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="userTypeClient" value="Client">
+            <label class="form-check-label" for="userTypeClient">Cliente</label>
+          </div>
+          <div class="date-container" id="dataCadastro" style="display:none;">
+            <label for="cadastroDate" class="form-label">Insira sua data de cadastro:</label>
+            <input type="date" name="cadastroDate" class="form-control" id="cadastroDate">
           </div>
         </div>
-      </section>
-    </div>
-  </main>
 
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
-      class="bi bi-arrow-up-short"></i></a>
+        <button onclick="updateHomePage(user)" class="btn btn-primary w-100" type="submit">Entrar</button>
+      </form>
+    </div>
+
+
+    <!-- Toggle Between Sign In and Sign Up -->
+    <div class="toggle-container">
+      <div class="toggle">
+        <div class="toggle-panel toggle-left">
+          <h1>Já tem uma Conta?</h1>
+          <button class="hidden" id="login">Fazer Login</button>
+        </div>
+        <div class="toggle-panel toggle-right">
+          <h1>Não tem uma Conta?</h1>
+          <button class="hidden" id="register">Cadastre-se</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Exibir campo de data de cadastro para clientes apenas quando o checkbox cliente é clicado
+    document.getElementById('userTypeClient').addEventListener('change', function () {
+      document.getElementById('dataCadastro').style.display = this.checked ? 'flex' : 'none';
+    });
+
+    // Ocultar o campo de data de cadastro e desmarcar o checkbox cliente se o checkbox usuário for clicado
+    document.getElementById('userTypeUser').addEventListener('change', function () {
+      if (this.checked) {
+        document.getElementById('dataCadastro').style.display = 'none';
+        document.getElementById('userTypeClient').checked = false;
+      }
+    });
+  </script>
 
 
   <!-- Modal Bootstrap -->
@@ -134,7 +138,9 @@
   <!-- JS -->
   <script src="src/js/bootstrap.bundle.min.js"></script>
   <script src="src/js/main.js"></script>
+  <script src="src/js/newLogin.js"></script>
   <script src="src/js/login.js"></script>
+  <script src="src/js/signUp.js"></script>
   <script src="src/js/updateProfile.js"></script>
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

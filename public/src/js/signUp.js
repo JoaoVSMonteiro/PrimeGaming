@@ -1,39 +1,67 @@
-document.getElementById('signupForm').addEventListener('submit', function (event) {
-    event.preventDefault();
+document.getElementById('signupForm').addEventListener('submit', async function (event) {
+  event.preventDefault();
 
-    const name = document.getElementById('yourName').value;
-    const email = document.getElementById('yourEmail').value;
-    const username = document.getElementById('yourUsername').value;
-    const password = document.getElementById('yourPassword').value;
+  const name = document.getElementById('yourName').value.trim();
+  const email = document.getElementById('yourEmail').value.trim();
+  const username = document.getElementById('yourUsername').value.trim();
+  const password = document.getElementById('yourPassword').value.trim();
 
-    // Verifica se todos os campos estão preenchidos
-    if (!name || !email || !username || !password) {
-        showModal('Preencha todos os campos');
-        return;
-    }
+  // Verificação de campos obrigatórios
+  if (!name || !email || !username || !password) {
+      showModal('Preencha todos os campos');
+      return;
+  }
 
-    // Validação do formato do email usando regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showModal('Por favor, insira um email válido');
-        return;
-    }
+  // Validação de formato de e-mail
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+      showModal('Insira um email válido');
+      return;
+  }
 
-    // Recuperar a lista de usuários existente
-    let users = JSON.parse(localStorage.getItem('users')) || [];
+  try {
+      // Envia os dados para o servidor Node.js com MongoDB
+      const response = await fetch('http://localhost:3000/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, username, password }),
+      });
 
-    // Verifica se o nome de usuário já existe
-    if (users.some(user => user.username === username)) {
-        showModal('Nome de usuário já existe. Escolha outro');
-        return;  // Sai da função se o nome de usuário já existir
-    }
+      const data = await response.json();
 
-    // Adicionar o novo usuário ao array
-    users.push({ name, email, username, password });
-
-    // Salvar a lista atualizada de usuários no localStorage
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Redireciona para a página de login (verifique o caminho)
-    window.location.href = '../../index.html';
+      if (response.ok) {
+          // Cadastro bem-sucedido
+          showModal('Usuário cadastrado. Faça Login');
+          
+          // Simula um clique no botão de login após o sucesso no registro
+          document.getElementById('login').click();
+      } else {
+          // Exibe a mensagem de erro recebida do backend
+          showModal(data.message);
+      }
+  } catch (error) {
+      // Erro ao tentar fazer a requisição ao servidor
+      showModal('Erro ao registrar usuário. Tente novamente mais tarde.');
+  }
 });
+
+// Função para exibir o modal com uma mensagem
+async function showModal(message) {
+  // Atualizar o conteúdo da mensagem do modal
+  document.getElementById('modal-message').innerText = message;
+
+  // Mostrar o modal usando o Bootstrap
+  var myModal = new bootstrap.Modal(document.getElementById('exampleModal'));
+  myModal.show();
+
+  // Função para fechar o modal ao clicar no X
+  document.querySelector('.btn-close').addEventListener('click', function () {
+      myModal.hide();
+  });
+
+  // Espera 1,5 segundos antes de fechar automaticamente
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Fechar o modal automaticamente
+  myModal.hide();
+}

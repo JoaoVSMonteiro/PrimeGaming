@@ -25,6 +25,8 @@
   <link href="../css/bootstrap.min.css" rel="stylesheet">
   <link href="../css/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="../css/style.css" rel="stylesheet">
+  <!--CSS Toast-->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
 
 </head>
@@ -131,11 +133,11 @@
 
       <!-- Aba Usuários Nav -->
       <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+        <a class="nav-link collapsed" data-bs-target="#tables-nav2" data-bs-toggle="collapse" href="#">
           <i class="bi bi-layout-text-window-reverse"></i><span>Usuários</span><i
             class="bi bi-chevron-down ms-auto"></i>
         </a>
-        <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+        <ul id="tables-nav2" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
             <a href="../views/users.html">
               <i class="bi bi-circle"></i><span>Lista Usuários</span>
@@ -182,7 +184,7 @@
                       <i class="bi bi-cart"></i>
                     </div>
                     <div class="ps-3">
-                      <h6>3</h6>
+                      <h6>35</h6>
                     </div>
                   </div>
                 </div>
@@ -200,7 +202,7 @@
                       <i class="bi bi-currency-dollar"></i>
                     </div>
                     <div class="ps-3">
-                      <h6>R$413,12</h6>
+                      <h6 id="receita">R$4.413,12</h6>
                     </div>
                   </div>
                 </div>
@@ -217,7 +219,7 @@
                       <i class="bi bi-people"></i>
                     </div>
                     <div class="ps-3">
-                      <h6>4</h6>
+                      <h6>52</h6>
                     </div>
                   </div>
                 </div>
@@ -244,7 +246,9 @@
                     <tbody>
                       <!-- Produtos pré-cadastrados -->
                       <tr>
-                        <th scope="row"><a><img src="../img/product-1.jpg" alt=""></a></th>
+                        <th scope="row"><a><img
+                              src="../img/mouse_gamer_redragon_cobra_m711_rgb_359_1_0b63c26272b8a44525c85ad6ddbfe5c3.webp"
+                              alt=""></a></th>
                         <td><a class="text-primary fw-bold">Mouse Gamer Redragon Cobra</a></td>
                         <td>R$150,00</td>
                         <td class="fw-bold">R$112,50</td>
@@ -252,7 +256,9 @@
                         <td>Mouse Gamer Redragon</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a><img src="../img/product-1.jpg" alt=""></a></th>
+                        <th scope="row"><a><img
+                              src="../img/Teclado-Gamer-Acer-Nitro-TKL-RGB-Led-Rainbow-Anti-Ghosting-ABNT2-USB-NKW120_1674815320_g.jpg"
+                              alt=""></a></th>
                         <td><a class="text-primary fw-bold">Teclado Gamer Acer Nitro</a></td>
                         <td>R$263,12</td>
                         <td class="fw-bold">R$197,34</td>
@@ -329,26 +335,31 @@
 
           <script>
             // Adicionar atividades recentes com interação do usuário
-            function atualizarAtividadesRecentes() {
-              // Recuperar a lista de atividades do localStorage
-              const atividades = JSON.parse(localStorage.getItem('atividades')) || [];
-              const atividadeContainer = document.querySelector('.activity');
+            async function atualizarAtividadesRecentes() {
+              try {
+                // Recuperar a lista de atividades do Redis
+                const response = await fetch('/api/atividades');
+                if (!response.ok) {
+                  throw new Error('Erro ao buscar atividades do servidor');
+                }
+                const atividades = await response.json();
+                const atividadeContainer = document.querySelector('.activity');
 
-              // // Limpar atividades antigas
-              // atividadeContainer.innerHTML = '';
-
-              // Adicionar atividades recentes
-              atividades.forEach(novaAtividade => {
-                const atividadesItem = document.createElement('div');
-                atividadesItem.className = 'activity-item d-flex';
-                atividadesItem.innerHTML = `
-                        <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                        <div class='activity-content'>
-                            ${novaAtividade}
-                        </div>
-                    `;
-                atividadeContainer.appendChild(atividadesItem);
-              });
+                // Adicionar atividades recentes
+                atividades.forEach(novaAtividade => {
+                  const atividadesItem = document.createElement('div');
+                  atividadesItem.className = 'activity-item d-flex';
+                  atividadesItem.innerHTML = `
+                    <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                    <div class='activity-content'>
+                      ${novaAtividade}
+                    </div>
+                  `;
+                  atividadeContainer.appendChild(atividadesItem);
+                });
+              } catch (error) {
+                console.error('Erro:', error);
+              }
             }
 
             // Chamar a função para atualizar as atividades ao carregar a página
@@ -400,6 +411,9 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Script Toast -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 
 </body>

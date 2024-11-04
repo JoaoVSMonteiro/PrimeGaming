@@ -49,11 +49,6 @@
 
         <li class="nav-item dropdown pe-3">
 
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="../img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">User</span>
-          </a><!-- Fim Profile Image Icon -->
-
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
               <h6>Opções</h6>
@@ -135,11 +130,11 @@
 
       <!-- Aba Usuários Nav -->
       <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+        <a class="nav-link collapsed" data-bs-target="#tables-nav2" data-bs-toggle="collapse" href="#">
           <i class="bi bi-layout-text-window-reverse"></i><span>Usuários</span><i
             class="bi bi-chevron-down ms-auto"></i>
         </a>
-        <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+        <ul id="tables-nav2" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
             <a href="../views/users.html">
               <i class="bi bi-circle"></i><span>Lista Usuários</span>
@@ -176,13 +171,12 @@
     <section class="section">
       <div class="row">
         <div class="col-lg-6">
-
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Informações do Produto</h5>
 
-              <!-- Formulário para Cadastrar, Atualizar e Remover Produto -->
-              <form id="productForm">
+              <!-- Formulário para Cadastrar e Atualizar Produto -->
+              <form id="productFormCadastro">
                 <div class="row mb-3">
                   <label for="productId" class="col-sm-2 col-form-label">Código Produto</label>
                   <div class="col-sm-10">
@@ -198,6 +192,14 @@
                 </div>
 
                 <div class="row mb-3">
+                  <label for="productImage" class="col-sm-2 col-form-label">Imagem do Produto</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="productImage" placeholder="URL da Imagem do Produto"
+                      required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
                   <label for="productPriceCurrent" class="col-sm-2 col-form-label">Preço Atual</label>
                   <div class="col-sm-10">
                     <input type="number" class="form-control" id="productPriceCurrent" placeholder="Preço Atual"
@@ -209,7 +211,7 @@
                   <label for="productPricePromotion" class="col-sm-2 col-form-label">Preço em Promoção</label>
                   <div class="col-sm-10">
                     <input type="number" class="form-control" id="productPricePromotion"
-                      placeholder="Preço em Promoção (-25%)" required>
+                      placeholder="Preço em Promoção (-25%)">
                   </div>
                 </div>
 
@@ -245,16 +247,65 @@
                 <div class="row mb-3">
                   <div class="col-sm-10 offset-sm-2">
                     <button type="button" id="cadastrarBtn" class="btn btn-primary">Cadastrar Produto</button>
-                    <button type="button" id="atualizarBtn" class="btn btn-secondary">Atualizar Produto</button>
+                    <button type="button" id="atualizarBtn" class="btn btn-warning">Atualizar Produto</button>
+                  </div>
+                </div>
+              </form><!-- Fim Formulário Cadastrar e Atualizar -->
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Remover Produto</h5>
+
+              <!-- Formulário para Remover Produto -->
+              <form id="productFormRemocao">
+                <div class="row mb-3">
+                  <label for="removerProductId" class="col-sm-2 col-form-label">Código Produto</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="removerProductId" placeholder="Código do Produto"
+                      required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-sm-10 offset-sm-2">
                     <button type="button" id="removerBtn" class="btn btn-danger">Remover Produto</button>
                   </div>
                 </div>
-              </form><!-- Fim Formulário -->
+              </form><!-- Fim Formulário Remover -->
+            </div>
+          </div>
+
+          <!-- Formulário para Aplicar Desconto -->
+          <div class="card mt-4">
+            <div class="card-body">
+              <h5 class="card-title">Aplicar Desconto</h5>
+
+              <form id="productFormDesconto">
+                <div class="row mb-3">
+                  <label for="descontoProdutoId" class="col-sm-2 col-form-label">Código Produto</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="descontoProdutoId" placeholder="Código do Produto"
+                      required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-sm-10 offset-sm-2">
+                    <button type="button" onclick="aplicarDesconto()" id="aplicarDescontoBtn"
+                      class="btn btn-primary">Aplicar Desconto</button>
+                  </div>
+                </div>
+              </form><!-- Fim Formulário Aplicar Desconto -->
             </div>
           </div>
         </div>
       </div>
     </section>
+
 
   </main><!-- Fim main -->
 
@@ -293,6 +344,7 @@
   <script src="../js/bootstrap.bundle.min.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/cadastrarProduto.js"></script>
+  <script src="../js/updateProfile.js"></script>
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Bootstrap JS -->

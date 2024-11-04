@@ -1,81 +1,86 @@
-document.getElementById("loginForm").addEventListener("submit", function (event) {
-  event.preventDefault();
+document.getElementById("loginForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
 
-  const username = document.getElementById("loginUsername").value.trim();
-  const password = document.getElementById("yourPassword").value.trim();
-  const userTypeUser = document.getElementById("userTypeUser").checked;
-  const userTypeClient = document.getElementById("userTypeClient").checked;
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const cadastroDate = document.getElementById("cadastroDate").value; // Captura a data de cadastro
+    const userTypeUser = document.getElementById("userTypeUser").checked;
+    const userTypeClient = document.getElementById("userTypeClient").checked;
 
-  // Validação dos campos obrigatórios
-  if (!username) {
-      showModal("Insira um 'Nome de usuário'");
-      return;
-  }
+    // Validação dos campos obrigatórios
+    if (!username) {
+        showModal("Insira um 'Nome de usuário'");
+        return;
+    }
 
-  if (!password) {
-      showModal("Insira uma 'Senha'");
-      return;
-  }
+    if (!password) {
+        showModal("Insira uma 'Senha'");
+        return;
+    }
 
-  if (!userTypeUser && !userTypeClient) {
-      showModal("Selecione o tipo de usuário");
-      return;
-  }
+    if (!userTypeUser && !userTypeClient) {
+        showModal("Selecione o tipo de usuário");
+        return;
+    }
 
-  // Recuperar a lista de usuários
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const user = users.find(
-      (user) => user.username === username && user.password === password
-  );
+    try {
+        // Envia uma requisição POST para o servidor Node.js com os dados do login
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }), // Envia nome de usuário e senha
+        });
 
-  if (user) {
-      // Armazenar o nome de usuário atual no localStorage
-      localStorage.setItem("usuarioLogado", JSON.stringify(user));
+        const data = await response.json(); // Recebe os dados de resposta do backend
 
-      if (userTypeUser) {
-          user.type = "User"; // Marcar como usuário do tipo User
-          localStorage.setItem("usuarioLogado", JSON.stringify(user));
-          window.location.href = "src/views/home-page.html";
-      } else if (userTypeClient) {
-          user.type = "Client"; // Marcar como cliente
-          const cadastroDate = document.getElementById("cadastroDate").value;
-          const cadastroYear = cadastroDate
-              ? new Date(cadastroDate).getFullYear()
-              : new Date().getFullYear();
-          user.registrationDate = cadastroYear;
+        if (response.ok) {
+            // Login bem-sucedido
+            const user = data.user; // A resposta do backend contém o objeto do usuário ({ name, email, username, password })
 
-          // Atualizar a lista de usuários no localStorage
-          const updatedUsers = users.map((u) =>
-              u.username === username ? user : u
-          );
-          localStorage.setItem("users", JSON.stringify(updatedUsers));
-          localStorage.setItem("usuarioLogado", JSON.stringify(user));
+            // Atualiza o tipo de usuário
+            user.type = userTypeUser ? "User" : "Client";
 
-          window.location.href = "src/views/products.html";
-      }
-  } else {
-      showModal("Usuário ou senha incorretos");
-  }
+            // Adiciona a data de cadastro ao objeto do usuário, capturada do Front no login se for CLiente
+            user.registrationDate = cadastroDate;
+
+            // Armazenar os dados do usuário logado no localStorage
+            localStorage.setItem('usuarioLogado', JSON.stringify(user));
+
+            // Verifica o tipo de usuário e redireciona para a página correspondente
+            if (userTypeUser) {
+                window.location.href = "src/views/home-page.html"; 
+            } else if (userTypeClient) {
+                window.location.href = "src/views/products.html"; 
+            }
+        } else {
+            // Mostra o erro recebido do servidor
+            showModal(data.message);
+        }
+    } catch (error) {
+        // Exibe uma mensagem de erro genérica em caso de falha de conexão
+        showModal("Erro ao tentar fazer login. Tente novamente mais tarde.");
+    }
 });
 
+// Função para exibir o modal com mensagem de erro ou sucesso
 async function showModal(message) {
-  // Atualizar o conteúdo da mensagem do modal
-  document.getElementById('modal-message').innerText = message;
+    // Atualizar o conteúdo da mensagem do modal
+    document.getElementById('modal-message').innerText = message;
 
-  // Mostrar o modal usando o Bootstrap
-  var myModal = new bootstrap.Modal(document.getElementById('exampleModal'));
-  myModal.show();
+    // Mostrar o modal usando o Bootstrap
+    var myModal = new bootstrap.Modal(document.getElementById('exampleModal'));
+    myModal.show();
 
-  // // Função para os usuários fecharem a box no X 
+    // Função para os usuários fecharem a box no X 
+    document.querySelector('.btn-close').addEventListener('click', function () {
+        myModal.hide();
+    });
 
-  document.querySelector('.btn-close').addEventListener('click', function () {
-      myModal.hide();
-  });
+    // Espera 2 segundos e meio antes de fechar automaticamente
+    await new Promise(resolve => setTimeout(resolve, 2500));
 
-  // Espera 2 segundos e meio antes de fechar automaticamente
-  await new Promise(resolve => setTimeout(resolve, 2500));
-
-  // Fechar o modal automaticamente após 2 segundos e meio
-  myModal.hide();
-
+    // Fechar o modal automaticamente após 2 segundos e meio
+    myModal.hide();
 }
